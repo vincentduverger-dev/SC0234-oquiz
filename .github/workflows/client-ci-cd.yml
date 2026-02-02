@@ -33,11 +33,11 @@ jobs:
 
       # Installer les dépendances (commande shell)
       - name: Install dependencies
-        run: npm install
+        run: npm install --prefix client
 
-      # # Exécuter les tests
-      # - name: Run tests
-      #   run: npm run test --prefix client
+      # Exécuter les tests
+      - name: Run tests
+        run: npm run test --prefix client
 
       # Build front
       - name: Build front
