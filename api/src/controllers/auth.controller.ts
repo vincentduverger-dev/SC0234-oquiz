@@ -6,7 +6,7 @@ import argon2 from "argon2";
 import jwt from 'jsonwebtoken';
 import { config } from "../../config.ts";
 import crypto from 'node:crypto'
-import { BadRequestError, UnauthorizedError } from "../lib/errors.ts";
+import { BadRequestError, ConflictError, UnauthorizedError } from "../lib/errors.ts";
 import { ACCESS_TOKEN_EXPIRES_IN_MS, generateAuthTokens, REFRESH_TOKEN_EXPIRES_IN_MS, type Token } from "../lib/tokens.ts";
 
 // On pourrait laisser TS inférer le type de retour du controller (Promise<void>) mais le fait de le marquer explicitement, verrouille le comportement du controller et le rend prévisible.
@@ -26,14 +26,14 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     // 1.1 - s'assurer que les password correspondent
     if (password !== passwordConfirm) {
-        throw new Error('Les mdp ne correspondent pas')
+        throw new BadRequestError('Les mdp ne correspondent pas')
     }
 
     // 2 - avant de créer un user, s'assurer qu'il n'existe pas déjà
     const alreadyExistingUser = await prisma.user.findFirst({ where: { email } })
     // S'il existe -> Erreur
     if (alreadyExistingUser) {
-        throw new Error('Un user avec cet email existe déjà')
+        throw new ConflictError('Un user avec cet email existe déjà')
     }
 
     // 3 on peut créer le nouveau user
@@ -148,7 +148,6 @@ export const logout = async (req: Request, res: Response) => {
     });
 
     // On supprime également le refreshToken dans la DB (celui qui avait été confié au client et qu'il nous renvoie sur la route logout via cookie) pour forcer le relogin
-
     if (refreshToken) {
         await prisma.refreshToken.deleteMany({
             where: { token: refreshToken }
