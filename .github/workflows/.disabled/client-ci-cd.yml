@@ -1,0 +1,56 @@
+# Fichier à placer dans `.github/workflows`
+
+# Nom du workflow
+name: Deploy client build on Surge.sh
+
+# Événement déclencheur
+on:
+  push:
+    branches:
+      - main
+
+# Jobs à exécuter
+jobs:
+  # Nom du job
+  deploy_client_on_surge:
+    # Runner sur lequel le job va s'exécuter
+    runs-on: ubuntu-latest # Utilise la dernière version d'Ubuntu fournie par GitHub, vient avec Docker installé
+
+    # Précise dans quel environnement trouver les variables et secrets
+    environment: CI/CD
+
+    # Étapes du job
+    steps:
+      # Récupérer le code du dépôt (action officielle)
+      - name: Checkout code
+        uses: actions/checkout@v4 # v4 est la version actuelle, vérifier la dernière
+
+      # Mettre en place Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22' # Spécifie la version de Node.js
+
+      # Installer les dépendances (commande shell)
+      - name: Install dependencies
+        run: npm install --prefix client
+
+      # Exécuter les tests
+      - name: Run tests
+        run: npm run test --prefix client
+
+      # Build front
+      - name: Build front
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+        run: npm run build --prefix client
+
+      # Installer surge
+      - name: Install Surge CLI
+        run: npm install --global surge
+
+      # Déployer le code buildé
+      - name: Deploy build
+        # On génère un otken avec la CLI Surge (https://github.com/yavisht/deploy-via-surge.sh-github-action-template)
+        # Il faut bien penser à rendre ces variables disponibles depuis le repo Github : settings -> secrets and variables -> actions -> environment secrets -> (choisir l'environnement, ici "CI/CD" ligne20)
+        run: surge --project ./client/dist --domain ${{ vars.SURGE_DOMAIN }} --token ${{ secrets.SURGE_TOKEN }}

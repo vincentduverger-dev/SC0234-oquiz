@@ -1,0 +1,48 @@
+# Objectif de ce workflow
+# - Lancer les tests
+# - Build le back
+
+# Nom du workflow (affiché sur Github)
+name: Run integration tests on API
+
+# Définir les évènements qui déclenche le workflow
+on:
+  push: # Un push ou un merge va déclencher le workflow
+    branches:
+      - main
+      - master
+  pull_request: # La création d'une PR vers main va déclencher le workflow
+    branches:
+      - main
+      - master
+
+# Suites d'étapes qui s'éxécute dans un runner
+jobs:
+  # Nom du job (ce qu'on veut)
+  run_api_tests:
+    # Choix du runner
+    runs-on: ubuntu-latest
+
+    # Étapes du job
+    steps:
+      # Récupérer le code du dépôt dans le runner (un conteneur que github actions créé pour effectuer le workflow) (action officiel)
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Mettre en place Node.js
+      - name: Install Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22' # Spécifie la version de Node.js
+
+      # Installer les dépendances
+      - name: Install dependencies
+        run: npm install --prefix api
+
+      # Generate Prisma Client
+      - name: Generate Prisma Client
+        run: npm run db:generate --prefix api
+
+      # Exécuter les tests
+      - name: Run tests
+        run: npm run test --prefix api
