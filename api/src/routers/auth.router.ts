@@ -1,7 +1,9 @@
 import { Router } from "express";
-import { login, register } from "../controllers/auth.controller.ts";
+import { login, logout, refreshAccessToken, register } from "../controllers/auth.controller.ts";
 
 export const router = Router();
 
 router.post('/auth/register', register)
 router.post('/auth/login', login)
+router.post('/auth/logout', logout)
+router.post('/auth/refresh', refreshAccessToken)

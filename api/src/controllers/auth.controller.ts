@@ -114,14 +114,114 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         path: "/api" // -> le cookie ne s'enverra que sur les requêtes "http://localhost:3000/api"
     });
 
-    res.cookie(`refreshToken`, accessToken.token, {
+    res.cookie(`refreshToken`, refreshToken.token, {
         httpOnly: true,
         secure: config.isProduction,
         sameSite: config.isProduction ? "none" : "lax",
         maxAge: REFRESH_TOKEN_EXPIRES_IN_MS,
-        path: "/api/refresh" // -> le cookie ne s'enverra que sur la route refresh, pas nécessaire sur les autres
+        path: "/api/auth" // -> le cookie ne s'enverra que sur les routes auth, pas nécessaire sur les autres
     });
 
     // SOIT directement dans la response
     res.status(200).json({ message: "OK", accessToken, refreshToken })
+}
+
+
+export const logout = async (req: Request, res: Response) => {
+    const refreshToken = req.cookies?.refreshToken;
+
+    // Pour utiliser clearCookie, le nom ne suffit pas, il faut spécifier exactement les mêmes options utilisées lors du setCookie
+    res.clearCookie(`accessToken`, {
+        httpOnly: true,
+        secure: config.isProduction,
+        sameSite: config.isProduction ? "none" : "lax",
+        maxAge: ACCESS_TOKEN_EXPIRES_IN_MS,
+        path: "/api"
+    });
+
+    res.clearCookie(`refreshToken`, {
+        httpOnly: true,
+        secure: config.isProduction,
+        sameSite: config.isProduction ? "none" : "lax",
+        maxAge: REFRESH_TOKEN_EXPIRES_IN_MS,
+        path: "/api/auth" // -> le cookie ne s'enverra que sur les routes auth, pas nécessaire sur les autres
+    });
+
+    // On supprime également le refreshToken dans la DB (celui qui avait été confié au client et qu'il nous renvoie sur la route logout via cookie) pour forcer le relogin
+
+    if (refreshToken) {
+        await prisma.refreshToken.deleteMany({
+            where: { token: refreshToken }
+        })
+    }
+
+    /**
+     * Ici différentes stratégies possibles : 
+     * - 1 appareil = 1 session = 1 refreshToken -> permet de se connecter déconnecter de manière flexible sans impacter les autres appareils
+     * - 1 seul refreshToken par utilisateur -> le login/logout entraîne l'invalidation de tous les refreshTokens précédemments créés
+     */
+    // * Si on veut se déconnecter de partout (tous les appareils connectés) il faut alors supprimer TOUS les refreshTokens du user en DB, sinon n'importe quel navigateur qui possède encore le cookie restera connecté
+
+    res.sendStatus(204);
+}
+
+
+export const refreshAccessToken = async (req: Request, res: Response) => {
+    // Récupérer le token dans les cookies
+    const rawToken = req.cookies?.refreshToken;
+    if (!rawToken) {
+        throw new UnauthorizedError("Refresh token not provided");
+    }
+
+    // Rechercher le refresh token en base de données, avec son utilisateur associé
+    const existingRefreshToken = await prisma.refreshToken.findFirst({
+        where: { token: rawToken },
+        include: { user: true }
+    });
+    if (!existingRefreshToken) {
+        throw new UnauthorizedError("Invalid refresh token");
+    }
+
+    // Vérifier la validité du token
+    if (existingRefreshToken.expires_at < new Date()) {
+        await prisma.refreshToken.delete({ where: { id: existingRefreshToken.id } }); // On le supprime au passage (on l'invalide)
+        throw new UnauthorizedError("Expired refresh token");
+    }
+
+    // Générer les tokens d'authentification
+    const { accessToken, refreshToken } = generateAuthTokens(existingRefreshToken.user);
+
+    // On retire le token existant de l'utilisateur avant d'en créer un nouveau
+    await prisma.refreshToken.deleteMany({ where: { token: rawToken } });
+
+    await prisma.refreshToken.create({
+        data: {
+            token: refreshToken.token,
+            user_id: existingRefreshToken.user.id,
+            issued_at: new Date(),
+            expires_at: new Date(new Date().valueOf() + refreshToken.expiresInMs)
+        }
+    });
+
+    // Ajouter les tokens aux cookies
+    res.cookie(`accessToken`, accessToken.token, {
+        httpOnly: true,
+
+        // Pour des cookies sécurisés cross-origin il faut :
+        secure: config.isProduction,    // les cookies cross-origin, c'est seulement en HTTPS ! Pour le dev on autorisera le HTTP en se basant sur la variable NODE_ENV
+        sameSite: config.isProduction ? "none" : "lax", // "none" nécessite secure=true
+        maxAge: ACCESS_TOKEN_EXPIRES_IN_MS, // expiration du cookie en même temps que le JWT
+        path: "/api" // -> le cookie ne s'enverra que sur les requêtes "http://localhost:3000/api"
+    });
+
+    res.cookie(`refreshToken`, refreshToken.token, {
+        httpOnly: true,
+        secure: config.isProduction,
+        sameSite: config.isProduction ? "none" : "lax",
+        maxAge: REFRESH_TOKEN_EXPIRES_IN_MS,
+        path: "/api/auth" // -> le cookie ne s'enverra que sur les routes auth, pas nécessaire sur les autres
+    });
+
+    // Répondre au client, on place également les tokens dans la réponse
+    res.status(200).json({ accessToken, refreshToken });
 }
