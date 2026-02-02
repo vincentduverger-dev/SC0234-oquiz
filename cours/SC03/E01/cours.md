@@ -148,16 +148,92 @@ Exploitation de la confiance d'un site envers le navigateur de l'utilisateur
 | other.com **fetch/AJAX POST** -> app.com   | ❌      | ❌   | ✅    |
 | other.com **`<img>`/iframe** -> app.com    | ❌      | ❌   | ✅    |
 
-### Hashage des mdp
+## Hashage de password
 
-On ne stocke jamais de mdp en clair en BDD -> on stocke un hash
+Attention au vocabulaire :
 
-- On génère un hash à partir d'un mdp
-- On ne peut pas retrouver le mdp à partir du hash
-- 2 mdp similaires auront tjrs des hashs correspondants
-- Aucune collision possible (1 hash = 1 mdp, pas de doublons possibles)
+- **Chiffrement** : opération réversible (chiffrer/déchiffrer). Ex : SSH, HTTPS.
+- **Hachage** : opération non réversible. On ne « dé-hache » pas un mot de passe. Ex : stockage sécurisé.
 
+Algorithmes recommandés (OWASP) :
+[Recommandations OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) => Argon2 (au jour du cours)
 
-[OWASP Cheat sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
+- `argon2` (souvent le choix moderne privilégié)
+- `scrypt`
+- `bcrypt`
 
--> On va utiliser argon2
+À éviter (obsolètes ou faibles) :
+
+- `md5`, `sha1` (trop rapides / collisions)
+
+Ils fonctionnent sur un principe commun : paramétrage de la difficulté (temps, mémoire) + génération d'un sel aléatoire + production de l'empreinte.
+
+```
+$argon2id$v=19$m=65536,t=3,p=4$2QF21eQQr6BWCjW3OSEgVg$X7jpXBW3zci5KeAzU+Kf0ob+bnFstETK6j4JXBq9xuM
+
+$argon2id -> algorithme choisi
+
+         $v=19 -> version de l'algorithme
+
+              $m=65536 -> mémoire utilisée
+
+                      t=3 -> nombre d'itérations
+
+                           p=4 -> facteur de parallélisme
+
+                             $2QF21eQQr6BWCjW3OSEgVg -> sel (salt)
+
+                                                    $X7jpXBW3zci5KeAzU+Kf0ob+bnFstETK6j4JXBq9xuM -> hash
+```
+
+Avant de hacher le mot de passe, l'algorithme génère un sel aléatoire pour introduire de l'entropie. Ainsi, deux utilisateurs ayant le même mot de passe auront des hash différents. Cela complique fortement les attaques par tables arc-en-ciel et l'analyse statistique (ex : « 50k hash identiques ⇒ même mot de passe »).
+
+Le temps de calcul dépend notamment du **nombre d'itérations** (paramètre `t`) et de la mémoire utilisée :
+
+- plus les paramètres sont élevés, plus le hash est coûteux à produire, ce qui ralentit les attaques brute-force.
+
+Exemple avec `bcrypt`
+
+```js
+rounds=8 : ~40 hashes/sec
+rounds=9 : ~20 hashes/sec
+rounds=10: ~10 hashes/sec
+rounds=11: ~5  hashes/sec
+rounds=12: 2-3 hashes/sec
+rounds=13: ~1 sec/hash
+rounds=14: ~1.5 sec/hash
+rounds=15: ~3 sec/hash
+rounds=25: ~1 hour/hash
+rounds=31: 2-3 days/hash
+```
+
+En général, on recherche un compromis entre sécurité (ralentir l'attaquant) et expérience utilisateur (ne pas bloquer l'inscription / connexion).
+
+## Mécanisme du refresh token
+
+[Séquence](./ressources/oquiz-refresh-token.puml)
+
+[Fiche recap](./ressources/refresh_token.md)
+
+Contexte :
+
+- l'access token est expiré
+- le front doit appeler `GET /api/levels` (route protégée)
+
+Flux côté front :
+
+1. Requête initiale `GET /api/levels` (en-tête Authorization avec access token) → `401 Unauthorized`.
+2. Requête `POST /api/auth/refresh` (envoie refresh token - cookie HttpOnly idéalement) → nouveau couple (access + refresh).
+3. Rejouer `GET /api/levels` avec le nouvel access token → `200 OK`.
+
+→ Côté backend : 3 appels.
+→ Côté utilisateur : surcoût quasi invisible (quelques millisecondes) si bien implémenté.
+
+## Conseils pour l'apothéose
+
+Simplifiez le plus possible :
+
+- `access token` valable une journée
+- pas de mécanisme de `refresh token`
+
+L'important, c'est la documentation (diagramme) de votre mécanisme d'authentification en CDA, pas tant son implémentation.

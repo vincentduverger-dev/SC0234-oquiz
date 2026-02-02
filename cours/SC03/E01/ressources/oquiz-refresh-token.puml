@@ -1,0 +1,47 @@
+@startuml Auth avancée
+actor User
+participant SPA
+participant API
+database BDD
+
+== LOGIN ==
+User -> SPA : Formulaire de connexion
+SPA -> API : POST /auth/login + { email, mdp }
+API -> BDD : SELECT utilisateur par email
+BDD --> API : Utilisateur (dont hash du mdp)
+API -> API : Vérifier le mot de passe
+
+alt Auth OK
+    API -> API : Génère Access Token (exp: 1h)
+    API -> API : Génère Refresh Token (exp: 7j)
+    API -> BDD : Enregistre Refresh Token (token + userId)
+    BDD --> API : OK
+
+    API --> SPA : 200 + { Refresh Token + Access Token }
+    SPA --> User : Mise à jour de l'affichage
+else Auth fail
+    API --> SPA : 401 Unauthorized
+    SPA --> User : Affichage erreur
+end
+
+== REFRESH ACCESS TOKEN ==
+User -> SPA : Requête automatique\nlors que l'accès token a expiré
+SPA -> API : POST /auth/refresh + { Refresh Token }
+API -> API : Vérifier le Refresh Token (expiration)
+API -> BDD : Vérifier l'existence en BDD
+BDD --> API : OK ou KO
+
+alt Refresh OK
+    API -> API : Génère nouveau Access Token + Refresh Token
+    API -> BDD : Enregistrement du nouveau Refresh Token
+    BDD --> API : si OK
+    API --> SPA : 200 { Access Token + Refresh Token }
+    SPA -> SPA : Stockage des nouveaux token
+    SPA --> User : Mise à jour de l'affichage
+
+else Refresh KO
+    BDD --> API : si KO
+    API --> SPA : 401 Unauthorized
+    SPA --> User : Redirige vers login
+end
+@enduml
