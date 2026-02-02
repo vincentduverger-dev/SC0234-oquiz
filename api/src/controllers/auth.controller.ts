@@ -5,6 +5,7 @@ import { prisma } from "../models/index.ts";
 import argon2 from "argon2";
 import jwt from 'jsonwebtoken';
 import { config } from "../../config.ts";
+import crypto from 'node:crypto'
 
 // On pourrait laisser TS inférer le type de retour du controller (Promise<void>) mais le fait de le marquer explicitement, verrouille le comportement du controller et le rend prévisible.
 // Si dans le controller je fait `return 123` -> Erreur TS
@@ -93,7 +94,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         role: "member"
     }
 
-    // 4.2 génèrer un token et le signer avec notre SECRET
+    // 4.2 génèrer un access token et le signer avec notre SECRET
 
     const TOKEN_EXPIRES_IN_MS = 1 * 60 * 60 * 1000 // 1h en ms
 
@@ -104,6 +105,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         expiresAt: new Date(new Date().valueOf() + TOKEN_EXPIRES_IN_MS),
         type: 'Bearer'
     }
+
+    // on génère un refreshToken
+    const refreshToken = crypto.randomBytes(128).toString("base64");
 
     // 4.3 envoyer le token au client
 
@@ -119,5 +123,5 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
 
     // SOIT directement dans la response
-    res.status(200).json({ message: "OK", token: tokenJWT })
+    res.status(200).json({ message: "OK", token: tokenJWT, refreshToken })
 }
