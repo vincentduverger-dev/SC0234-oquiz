@@ -1,12 +1,13 @@
 import type { Request, Response } from "express";
 import z from "zod";
 import { passwordSchema } from "../lib/validators.ts";
-import { prisma } from "../models/index.ts";
+import { prisma, type User } from "../models/index.ts";
 import argon2 from "argon2";
 import jwt from 'jsonwebtoken';
 import { config } from "../../config.ts";
 import crypto from 'node:crypto'
 import { BadRequestError, UnauthorizedError } from "../lib/errors.ts";
+import { ACCESS_TOKEN_EXPIRES_IN_MS, generateAuthTokens, REFRESH_TOKEN_EXPIRES_IN_MS, type Token } from "../lib/tokens.ts";
 
 // On pourrait laisser TS inférer le type de retour du controller (Promise<void>) mais le fait de le marquer explicitement, verrouille le comportement du controller et le rend prévisible.
 // Si dans le controller je fait `return 123` -> Erreur TS
@@ -87,42 +88,40 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         throw new BadRequestError("Combinaison email/mdp incorrecte")
     }
 
-    // 4 - créer un JWT avec les infos du user
+    // 4 - génèrer une paire de tokens
+    const { accessToken, refreshToken } = generateAuthTokens(user);
 
-    // 4.1 définir le payload
-    const payload = {
-        userId: user.id,
-        role: "member"
-    }
+    // Enregistrer le refreshToken en DB
+    await prisma.refreshToken.create({
+        data: {
+            token: refreshToken.token,
+            user_id: user.id,
+            issued_at: new Date(),
+            expires_at: new Date(new Date().valueOf() + refreshToken.expiresInMs)
+        }
+    });
 
-    // 4.2 génèrer un access token et le signer avec notre SECRET
-
-    const TOKEN_EXPIRES_IN_MS = 1 * 60 * 60 * 1000 // 1h en ms
-
-    const tokenJWT = jwt.sign(payload, config.jwt_secret, { expiresIn: '1h' })
-
-    const token = {
-        token: tokenJWT,
-        expiresAt: new Date(new Date().valueOf() + TOKEN_EXPIRES_IN_MS),
-        type: 'Bearer'
-    }
-
-    // on génère un refreshToken
-    const refreshToken = crypto.randomBytes(128).toString("base64");
-
-    // 4.3 envoyer le token au client
+    // 5 envoyer les tokens au client
 
     // SOIT dans les cookies
-    res.cookie(`accessToken`, token.token, {
+    res.cookie(`accessToken`, accessToken.token, {
         httpOnly: true,
 
         // Pour des cookies sécurisés cross-origin il faut :
         secure: config.isProduction,    // les cookies cross-origin, c'est seulement en HTTPS ! Pour le dev on autorisera le HTTP en se basant sur la variable NODE_ENV
         sameSite: config.isProduction ? "none" : "lax", // "none" nécessite secure=true
-        maxAge: TOKEN_EXPIRES_IN_MS, // expiration du cookie en même temps que le JWT
+        maxAge: ACCESS_TOKEN_EXPIRES_IN_MS, // expiration du cookie en même temps que le JWT
         path: "/api" // -> le cookie ne s'enverra que sur les requêtes "http://localhost:3000/api"
     });
 
+    res.cookie(`refreshToken`, accessToken.token, {
+        httpOnly: true,
+        secure: config.isProduction,
+        sameSite: config.isProduction ? "none" : "lax",
+        maxAge: REFRESH_TOKEN_EXPIRES_IN_MS,
+        path: "/api/refresh" // -> le cookie ne s'enverra que sur la route refresh, pas nécessaire sur les autres
+    });
+
     // SOIT directement dans la response
-    res.status(200).json({ message: "OK", token: tokenJWT, refreshToken })
+    res.status(200).json({ message: "OK", accessToken, refreshToken })
 }
