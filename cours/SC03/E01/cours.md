@@ -148,3 +148,16 @@ Exploitation de la confiance d'un site envers le navigateur de l'utilisateur
 | other.com **fetch/AJAX POST** -> app.com   | ❌      | ❌   | ✅    |
 | other.com **`<img>`/iframe** -> app.com    | ❌      | ❌   | ✅    |
 
+### Hashage des mdp
+
+On ne stocke jamais de mdp en clair en BDD -> on stocke un hash
+
+- On génère un hash à partir d'un mdp
+- On ne peut pas retrouver le mdp à partir du hash
+- 2 mdp similaires auront tjrs des hashs correspondants
+- Aucune collision possible (1 hash = 1 mdp, pas de doublons possibles)
+
+
+[OWASP Cheat sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
+
+-> On va utiliser argon2
