@@ -18,6 +18,22 @@ cp .env.docker.dev.example .env
 docker compose up
 ```
 
+**Si j'ai besoin d'installer un module dans un conteneur**
+
+```bash
+# Installer en local
+# /api
+npm i mon_module
+
+# Supprimer le cache docker
+docker system prune -a
+
+# redémarrer les conteneurs pour prendr ene compte le nouveau module
+docker compose up --build
+```
+
+####
+
 ```bash
 # Installer les dépendances
 npm install --prefix api
