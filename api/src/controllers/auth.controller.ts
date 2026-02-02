@@ -5,7 +5,6 @@ import { prisma, type User } from "../models/index.ts";
 import argon2 from "argon2";
 import jwt from 'jsonwebtoken';
 import { config } from "../../config.ts";
-import crypto from 'node:crypto'
 import { BadRequestError, ConflictError, UnauthorizedError } from "../lib/errors.ts";
 import { ACCESS_TOKEN_EXPIRES_IN_MS, generateAuthTokens, REFRESH_TOKEN_EXPIRES_IN_MS, type Token } from "../lib/tokens.ts";
 

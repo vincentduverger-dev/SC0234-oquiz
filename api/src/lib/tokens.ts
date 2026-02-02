@@ -3,16 +3,7 @@ import { config } from "../../config.ts";
 import type { Role, User } from "../../prisma/generated/client.ts";
 import crypto from 'node:crypto';
 
-export interface Token {
-    token: string;
-    type: string;
-    expiresInMs: number;
-}
-
-export interface TokenPayload {
-    userId: number,
-    role: Role
-}
+// TODO typage
 
 export const ACCESS_TOKEN_EXPIRES_IN_MS = 1 * 60 * 60 * 1000 // 1h
 export const REFRESH_TOKEN_EXPIRES_IN_MS = 7 * 24 * 60 * 60 * 1000 // 7j
