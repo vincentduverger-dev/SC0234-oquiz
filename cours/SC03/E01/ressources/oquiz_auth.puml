@@ -1,0 +1,35 @@
+@startuml Oquiz authentification
+
+actor User
+participant API
+participant Client
+database BDD
+
+== Register ==
+
+User -> CLient : Formulaire
+Client -> API : POST api/register (email, mdp)
+API -> API : Vérification des infos (Schéma zod, existingUser..)
+API -> API : Hashage du mdp
+API -> BDD : Insert user (email, hash)
+BDD -> API : OK
+API -> Client : 201
+Client -> User : Login page
+
+
+== Login ==
+
+User -> Client : Formulaire
+Client -> API : POST /api/login (email, mdp)
+API -> API : Vérification des infos (parsing avec Schéma zod)
+API -> BDD : Select User via email
+BDD -> API : User (avec hash du mdp)
+API -> API : compare hash=~=mdp
+
+API -> API : créer un JWT -> user.id, user.role -> signature
+API -> API : configurer les cookies
+
+API -> Client : 200 + cookies JWT
+Client -> User : Page mon compte
+
+@enduml
