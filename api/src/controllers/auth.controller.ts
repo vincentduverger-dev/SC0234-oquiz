@@ -6,6 +6,7 @@ import argon2 from "argon2";
 import jwt from 'jsonwebtoken';
 import { config } from "../../config.ts";
 import crypto from 'node:crypto'
+import { BadRequestError, UnauthorizedError } from "../lib/errors.ts";
 
 // On pourrait laisser TS inférer le type de retour du controller (Promise<void>) mais le fait de le marquer explicitement, verrouille le comportement du controller et le rend prévisible.
 // Si dans le controller je fait `return 123` -> Erreur TS
@@ -76,14 +77,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const user = await prisma.user.findFirst({ where: { email } })
 
     if (!user) {
-        throw new Error("Combinaison email/mdp incorrecte")
+        throw new BadRequestError("Combinaison email/mdp incorrecte")
     }
 
     // 3 - comparer le hash BDD avec le mdp fourni
     const isMatching = await argon2.verify(user.password, password)
 
     if (!isMatching) {
-        throw new Error("Combinaison email/mdp incorrecte")
+        throw new BadRequestError("Combinaison email/mdp incorrecte")
     }
 
     // 4 - créer un JWT avec les infos du user

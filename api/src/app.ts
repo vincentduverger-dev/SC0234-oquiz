@@ -2,6 +2,8 @@ import cors from "cors";
 import express from "express";
 import { router as apiRouter } from "./routers/index.router.ts";
 import { infoMiddleware } from "./middlewares/info.middleware.ts";
+import { globalErrorHandler } from "./middlewares/globalError.middleware.ts";
+import { notFoundMW } from "./middlewares/notFound.middleware.ts";
 
 // Créer une app Express
 export const app = express();
@@ -17,3 +19,16 @@ app.use("/api", apiRouter);
 
 // Info route
 app.get("/info", infoMiddleware);
+
+
+
+
+
+// -----------------------GESTION DES ERREURS-----------------
+
+// Middleware notFound
+app.use(notFoundMW);
+
+// Middleware erreurs
+// Sera appelé dès qu'une erreur est `throw` dans les MW précédents
+app.use(globalErrorHandler);
