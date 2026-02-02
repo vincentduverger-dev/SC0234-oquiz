@@ -1,0 +1,22 @@
+# Dockerfile pour le développement avec Vite dev server
+
+FROM node:20-alpine
+
+# Créer le répertoire de travail
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY package*.json ./
+
+# Installer toutes les dépendances
+RUN npm install
+
+# Copier le code source (sera monté en volume mais nécessaire pour la première installation)
+COPY . .
+
+# Exposer le port de Vite dev server
+EXPOSE 5173
+
+# Lancer Vite en mode développement
+# L'option --host permet d'accéder au serveur depuis l'extérieur du conteneur
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

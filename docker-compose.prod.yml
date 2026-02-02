@@ -1,0 +1,66 @@
+# Documentation de Docker compose : orchestration de conteneur
+# Sensible à l'indentation (comme en Python)
+
+services:                 # Liste des serveurs (nos conteneurs !)
+  database:                  # Nom de notre premier service (nom du conteneur dans le réseau !) 
+    image: postgres:17       # Image permettant de créer le conteneur
+    restart: unless-stopped  # Redémarre automatiquement mon service en cas de crash (sauf si je l'ai éteint manuellement)
+    networks:
+      - oquiz-network
+    volumes:
+      - oquiz-volume:/var/lib/postgresql/data  # je monte mon volume oquiz-data dans mon conteneur, là où Postgres écrit par défaut ses données lorsqu'il manipule les tables
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:                   # Si on a besoin de pouvoir contacter la BDD depuis l'extérieur, on peut rajouter ce binding de port, sinon pas besoin
+      - ${POSTGRES_PORT}:5432
+
+  api:
+    build:                    # Plutôt que de partir d'une image existante, on demande à compose de générer l'image à partir de :
+      context: ./api          # ce dossier
+      dockerfile: Dockerfile  # ce Dockerfile
+    # image:                  # Pour partir d'une image existante, on pourrait plutôt utiliser cette syntaxe
+    #   oquiz-api             # Nom de l'image de laquelle on part
+    restart: unless-stopped   # Redémarre automatiquement mon service en cas de crash (sauf si je l'ai éteint manuellement)
+    environment:
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL}  # On lit directement dans le conteneur (database) puisqu'on est sur le meme network = le port 5432 j'ai accès depuis cet autre conteneur
+    ports:
+      - ${API_HOST_PORT}:3000
+    networks:
+      - oquiz-network
+    depends_on:
+      - database # On s'assure que le service "database" soit lancé avant de lancer ce service
+
+        # Service complémentaire : pour visualiser et manipuler la BDD via une interface graphique
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    ports: 
+      - ${ADMINER_PORT}:8080
+    depends_on:
+      - database
+    networks:
+      - oquiz-network
+  
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        API_URL: ${API_URL}
+    ports:
+      - ${CLIENT_PORT}:80  # Port pour npm run preview. Si npm run dev alors port 5173
+    # networks:
+    #   - oquiz-network
+    depends_on:
+      - api
+    restart: unless-stopped
+      
+networks:        # Liste des réseaux
+  oquiz-network: # Nom du réseau
+
+volumes:         # Liste de nos volumes
+  oquiz-volume:  # Volume pour la persistance des données de la BDD (sur l'hôte, au cas où le conteneur est supprimé, les données restent !)
+  # Note : on aurait pu mettre un dosier local comme `./oquiz-data` que l'on ajoute au gitignore
