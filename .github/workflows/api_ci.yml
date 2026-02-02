@@ -25,7 +25,7 @@ jobs:
 
     # Étapes du job
     steps:
-      # Récupérer le code du dépôt dans le runner (action officiel)
+      # Récupérer le code du dépôt dans le runner (un conteneur que github actions créé pour effectuer le workflow) (action officiel)
       - name: Checkout code
         uses: actions/checkout@v4
 

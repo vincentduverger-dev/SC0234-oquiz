@@ -1,0 +1,38 @@
+@startuml Pipeline CD du client Oquiz
+
+repeat 
+
+    partition IDE {
+        :Développement de fonctionnalités;
+        :Ajout des modifications à la branche main (merge);
+        :Commit & Push de la branche main;
+    }
+
+
+    partition Github {
+        partition Github Action {
+            :Déclenchement du workflow (push sur branche main);
+
+
+            :Configuration de l'environnement d'exécution du workflow (ubuntu-latest);
+            :Récupération du code source (actions/checkout@v4);
+            :Setup NodeJS & installation des dépendances;
+
+            :Lancement des tests;
+            if (échec des tests ?) then (oui)
+            :Arrêt de la pipeline;
+            stop
+            else (non)
+            endif
+
+            :Build le code front en fichiers statiques;
+
+            :Push le code en prod sur Surge;
+        }
+    }
+
+    partition Serveur Surge {
+        :Redéploiement du nouveau code statique;
+    }
+
+@enduml
