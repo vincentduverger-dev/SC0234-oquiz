@@ -8,6 +8,16 @@ Pré-requis :
 
 ### Installation
 
+#### Avec Docker compose
+
+```bash
+# Copier les variables d'environnement et modifier les valeurs si nécessaire
+cp .env.docker.dev.example .env
+
+# démarrer les conteneurs docker
+docker compose up
+```
+
 ```bash
 # Installer les dépendances
 npm install --prefix api
