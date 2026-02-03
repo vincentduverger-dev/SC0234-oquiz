@@ -31,7 +31,7 @@ export const checkRoles = (roles: Role[]) => {
         req.user = tokenPayload
 
         // On passe le relai au controller
-        next()
+        return next()
     }
 }
 
