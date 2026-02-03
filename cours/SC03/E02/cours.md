@@ -73,4 +73,6 @@ app.get('/user/:id', (req, res, next) => {
 
 ## Autorisation
 
+// TODO
+
 ### Sur Oquizz ?
