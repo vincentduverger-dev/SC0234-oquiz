@@ -6,7 +6,7 @@ import argon2 from "argon2";
 import jwt from 'jsonwebtoken';
 import { config } from "../../config.ts";
 import { BadRequestError, ConflictError, UnauthorizedError } from "../lib/errors.ts";
-import { ACCESS_TOKEN_EXPIRES_IN_MS, generateAuthTokens, REFRESH_TOKEN_EXPIRES_IN_MS, type Token } from "../lib/tokens.ts";
+import { ACCESS_TOKEN_EXPIRES_IN_MS, generateAuthTokens, REFRESH_TOKEN_EXPIRES_IN_MS } from "../lib/tokens.ts";
 
 // On pourrait laisser TS inférer le type de retour du controller (Promise<void>) mais le fait de le marquer explicitement, verrouille le comportement du controller et le rend prévisible.
 // Si dans le controller je fait `return 123` -> Erreur TS
