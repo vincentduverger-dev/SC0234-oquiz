@@ -39,6 +39,7 @@ services:
     depends_on:
       oquiz-db:
         condition: service_healthy
+    command: npm run docker:dev
 
   oquiz-client:
     build:

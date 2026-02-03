@@ -3,7 +3,6 @@ import z from "zod";
 import { passwordSchema } from "../lib/validators.ts";
 import { prisma, type User } from "../models/index.ts";
 import argon2 from "argon2";
-import jwt from 'jsonwebtoken';
 import { config } from "../../config.ts";
 import { BadRequestError, ConflictError, UnauthorizedError } from "../lib/errors.ts";
 import { ACCESS_TOKEN_EXPIRES_IN_MS, generateAuthTokens, REFRESH_TOKEN_EXPIRES_IN_MS } from "../lib/tokens.ts";
@@ -167,6 +166,7 @@ export const logout = async (req: Request, res: Response) => {
 export const refreshAccessToken = async (req: Request, res: Response) => {
     // Récupérer le token dans les cookies
     const rawToken = req.cookies?.refreshToken;
+
     if (!rawToken) {
         throw new UnauthorizedError("Refresh token not provided");
     }

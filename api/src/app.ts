@@ -4,12 +4,16 @@ import { router as apiRouter } from "./routers/index.router.ts";
 import { infoMiddleware } from "./middlewares/info.middleware.ts";
 import { globalErrorHandler } from "./middlewares/globalError.middleware.ts";
 import { notFoundMW } from "./middlewares/notFound.middleware.ts";
+import cookieParser from "cookie-parser";
 
 // Créer une app Express
 export const app = express();
 
 // Autorisation CORS
 app.use(cors());
+
+// Pour parser les cookies
+app.use(cookieParser())
 
 // Body parser pour récupérer les body "application/json" dans req.body
 app.use(express.json());
