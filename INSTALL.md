@@ -26,7 +26,7 @@ docker compose up
 npm i mon_module
 
 # Supprimer le cache docker
-docker system prune -a
+docker builder prune
 
 # redémarrer les conteneurs pour prendr ene compte le nouveau module
 docker compose up --build
