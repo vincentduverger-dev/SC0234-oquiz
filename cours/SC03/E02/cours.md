@@ -73,4 +73,7 @@ app.get('/user/:id', (req, res, next) => {
 
 ## Autorisation
 
+// TODO
+Je fais mes modifs
+
 ### Sur Oquizz ?
