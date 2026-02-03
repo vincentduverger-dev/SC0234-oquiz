@@ -61,7 +61,7 @@ app.get('/user/:id', (req, res, next) => {
 - stocké dans les cookies
 - transmis au serveur à chaque requête du client sur `/api`
   - soit via le cookies automatiquement
-  - soit possible aussi dans les headers `Authorization : Bearer xxxxxxxx`
+  - soit possible aussi dans les headers `"Authorization" : "Bearer xxxxxxxx"`
 
 **RefreshToken**
 

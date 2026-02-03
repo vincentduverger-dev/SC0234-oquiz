@@ -1,0 +1,31 @@
+meta {
+  name: getMe
+  type: http
+  seq: 7
+}
+
+get {
+  url: http://localhost:3000/api/auth/me
+  body: none
+  auth: inherit
+}
+
+body:json {
+  {
+    "email": "test@mail.fr",
+    "password": "TestP@ss123"
+  }
+}
+
+body:form-urlencoded {
+  firstname: test
+  lastname: test
+  password: TestP@ss123
+  passwordConfirm: TestP@ss123
+  email: test@mail.com
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -5,7 +5,9 @@ import { prisma, type User } from "../models/index.ts";
 import argon2 from "argon2";
 import { config } from "../../config.ts";
 import { BadRequestError, ConflictError, UnauthorizedError } from "../lib/errors.ts";
-import { ACCESS_TOKEN_EXPIRES_IN_MS, generateAuthTokens, REFRESH_TOKEN_EXPIRES_IN_MS } from "../lib/tokens.ts";
+import { ACCESS_TOKEN_EXPIRES_IN_MS, generateAuthTokens, REFRESH_TOKEN_EXPIRES_IN_MS, type Token, type TokenPayload } from "../lib/tokens.ts";
+
+import jwt from 'jsonwebtoken'
 
 // On pourrait laisser TS inférer le type de retour du controller (Promise<void>) mais le fait de le marquer explicitement, verrouille le comportement du controller et le rend prévisible.
 // Si dans le controller je fait `return 123` -> Erreur TS
@@ -125,7 +127,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 }
 
 
-export const logout = async (req: Request, res: Response) => {
+export const logout = async (req: Request, res: Response): Promise<void> => {
     const refreshToken = req.cookies?.refreshToken;
 
     // Pour utiliser clearCookie, le nom ne suffit pas, il faut spécifier exactement les mêmes options utilisées lors du setCookie
@@ -163,7 +165,7 @@ export const logout = async (req: Request, res: Response) => {
 }
 
 
-export const refreshAccessToken = async (req: Request, res: Response) => {
+export const refreshAccessToken = async (req: Request, res: Response): Promise<void> => {
     // Récupérer le token dans les cookies
     const rawToken = req.cookies?.refreshToken;
 
@@ -222,4 +224,56 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
 
     // Répondre au client, on place également les tokens dans la réponse
     res.status(200).json({ accessToken, refreshToken });
+}
+
+// Ici on va récupérer les informations de l'utilisateur connecté (via le JWT)
+export const getAuthedUserInfos = async (req: Request, res: Response): Promise<void> => {
+    // 1 - récupérer les infos du user (son id) dans le token
+
+    // 1.1 - récupérer le JWT
+    let JWT;
+    if (req.cookies?.accessToken) {
+
+        JWT = req.cookies.accessToken
+    } else if (req.headers.authorization) {
+        // Authorization : "Bearer xxxxxxxxxx"
+        if (req.headers.authorization.split(' ')[0] === 'Bearer') {
+            JWT = req.headers.authorization.split(' ')[1]
+        }
+    } else {
+        throw new UnauthorizedError('Token not provided')
+    }
+
+    try {
+        // 1.2 - valider le JWT
+        // On s'assure de l'intégrite de la signature du JWT
+        // On s'assure qu'il n'est pas expiré
+        // 1.3 décoder le JWT pour lire le userId
+
+        // On va utiliser la méthode `verify()` de jsonwebtoken qui s'assure de tout ça
+        // Si le token n'est pas valide (signature ou expiration) verify() lève une erreur
+        const payload: TokenPayload = jwt.verify(JWT, config.jwt_secret) as TokenPayload;
+        // 2 - récupérer le user dans la DB
+        const user = await prisma.user.findFirst({ where: { id: payload.userId } })
+
+        if (!user) {
+            throw new BadRequestError("No user found")
+        }
+        // 3 - renvoyer les infos du user connecté
+        res.status(200).json({
+            user: {
+                id: user.id,
+                firstname: user.firstname,
+                lastname: user.lastname,
+                email: user.email,
+                created_at: user.created_at,
+                updated_at: user.updated_at
+            }
+        })
+
+
+    } catch (error) {
+        throw new UnauthorizedError("Invalid token")
+    }
+
 }
