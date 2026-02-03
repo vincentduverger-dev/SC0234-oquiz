@@ -73,7 +73,21 @@ app.get('/user/:id', (req, res, next) => {
 
 ## Autorisation
 
-// TODO
-Je fais mes modifs
+On va vouloir vérifier quel type d'utilisateur (via rôle = membre, auteurn admin, visiteur...) peut accéder ou non à une ressource donnée (= une action au sein de notre API = 1 route)
+
+[Fiche rôles et permissions](./ressources/role-permissions.md)
 
 ### Sur Oquizz ?
+
+On va utiliser un RBAC couplé pour certaines routes à un ABAC
+
+[Oquiz rôles](../../conception/rbac.md)
+
+Besoin :
+
+  - Rôles -> visiteur, membre, auteur, admin
+  - Règles précises : voir user-stories
+
+  - Peu de rôles, rôles fixes -> 1 user = 1 rôle
+  - Stockage des rôles -> enum -> une liste fixe (évolutive via le code si jamais on a besoin)
+  - permissions en dur sur les routes -> 1 rôle = accès à un ensemble de routes
