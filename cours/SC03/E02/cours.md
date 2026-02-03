@@ -91,3 +91,8 @@ Besoin :
   - Peu de rôles, rôles fixes -> 1 user = 1 rôle
   - Stockage des rôles -> enum -> une liste fixe (évolutive via le code si jamais on a besoin)
   - permissions en dur sur les routes -> 1 rôle = accès à un ensemble de routes
+
+
+
+
+Route : member, admin -> user.role === member || admin -> OK | KO

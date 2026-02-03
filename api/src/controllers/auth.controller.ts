@@ -228,52 +228,24 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
 
 // Ici on va récupérer les informations de l'utilisateur connecté (via le JWT)
 export const getAuthedUserInfos = async (req: Request, res: Response): Promise<void> => {
-    // 1 - récupérer les infos du user (son id) dans le token
+    // 1 - récupérer les infos du token (userId) depuis le MW
+    const userInfos = req.user
 
-    // 1.1 - récupérer le JWT
-    let JWT;
-    if (req.cookies?.accessToken) {
+    // 2 - récupérer le user dans la DB
+    const user = await prisma.user.findFirst({ where: { id: userInfos?.userId } })
 
-        JWT = req.cookies.accessToken
-    } else if (req.headers.authorization) {
-        // Authorization : "Bearer xxxxxxxxxx"
-        if (req.headers.authorization.split(' ')[0] === 'Bearer') {
-            JWT = req.headers.authorization.split(' ')[1]
-        }
-    } else {
-        throw new UnauthorizedError('Token not provided')
+    if (!user) {
+        throw new BadRequestError("No user found")
     }
-
-    try {
-        // 1.2 - valider le JWT
-        // On s'assure de l'intégrite de la signature du JWT
-        // On s'assure qu'il n'est pas expiré
-        // 1.3 décoder le JWT pour lire le userId
-
-        // On va utiliser la méthode `verify()` de jsonwebtoken qui s'assure de tout ça
-        // Si le token n'est pas valide (signature ou expiration) verify() lève une erreur
-        const payload: TokenPayload = jwt.verify(JWT, config.jwt_secret) as TokenPayload;
-        // 2 - récupérer le user dans la DB
-        const user = await prisma.user.findFirst({ where: { id: payload.userId } })
-
-        if (!user) {
-            throw new BadRequestError("No user found")
+    // 3 - renvoyer les infos du user connecté
+    res.status(200).json({
+        user: {
+            id: user.id,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            email: user.email,
+            created_at: user.created_at,
+            updated_at: user.updated_at
         }
-        // 3 - renvoyer les infos du user connecté
-        res.status(200).json({
-            user: {
-                id: user.id,
-                firstname: user.firstname,
-                lastname: user.lastname,
-                email: user.email,
-                created_at: user.created_at,
-                updated_at: user.updated_at
-            }
-        })
-
-
-    } catch (error) {
-        throw new UnauthorizedError("Invalid token")
-    }
-
+    })
 }
