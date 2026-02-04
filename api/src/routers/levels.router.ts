@@ -8,13 +8,13 @@ export const router = Router();
 router.get("/levels", checkRoles(["member", "author", "admin"]), levelsController.getAllLevels);
 
 // Récupérer un level par son identifiant
-router.get("/levels/:id", levelsController.getLevelById);
+router.get("/levels/:id", checkRoles(['member', 'author', 'admin']), levelsController.getLevelById);
 
 // Créer un level
-router.post("/levels", levelsController.createLevel);
+router.post("/levels", checkRoles(['admin']), levelsController.createLevel);
 
 // Modifier un level
-router.patch("/levels/:id", levelsController.updateLevel);
+router.put("/levels/:id", checkRoles(['admin']), levelsController.updateLevel);
 
 // Supprimer un level
-router.delete("/levels/:id", levelsController.deleteLevel);
+router.delete("/levels/:id", checkRoles(['admin']), levelsController.deleteLevel);

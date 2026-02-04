@@ -1,8 +1,8 @@
 import { execSync } from "node:child_process"; // Permet de lancer des commandes de terminal
 import type { Server } from "node:http"; // Permet de lancer un serveur http
 import { after, before, beforeEach, type TestContext } from "node:test";
-import { app } from "../../app.ts";
-import { prisma } from "../../models/index.ts";
+import { app } from "../../src/app.ts";
+import { prisma } from "../../src/models/index.ts";
 
 // ================================================================================
 // Objectif de ce fichier : mettre en place l'environnement des tests d'intégration
@@ -44,7 +44,7 @@ before(async () => {
   // Use Promise-based wait instead of shell sleep
   await wait(1000);  // 1 second wait
 
-  execSync(`npx prisma migrate deploy`);
+  execSync(`npx prisma db push`);
 
   server = app.listen(process.env.PORT);
 });

@@ -3,7 +3,7 @@ import { prisma } from "../models/index.ts";
 import assert from "node:assert";
 
 // On va pouvoir utiliser nos requesters axios préconfigurés avec JWT
-import { adminRequester } from "../test/axios_requester.ts";
+import { adminRequester } from "../../test/axios_requester.ts";
 
 const testLevels = [
   { name: "Facile" },

@@ -1,6 +1,6 @@
 import axios from 'axios';
-import type { User } from '../models/index.ts';
-import { generateAuthTokens } from '../lib/tokens.ts';
+import type { User } from '../src/models/index.ts';
+import { generateAuthTokens } from '../src/lib/tokens.ts';
 
 export const apiBaseUrl = `http://localhost:${process.env.PORT}/api`;
 
