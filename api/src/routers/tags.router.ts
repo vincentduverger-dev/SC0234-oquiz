@@ -5,7 +5,6 @@ import { checkSelfItem } from "../middlewares/checkSelfItem.middleware.ts";
 
 export const router = Router();
 
-// Documentation Swagger : voir /api/src/swagger/endpoints/tags.json
 router.get("/", checkRoles(["member", "author", "admin"]), tagsController.getAllTags);
 router.get("/:id", checkRoles(["member", "author", "admin"]), tagsController.getOneTag);
 router.post("/", checkRoles(["author", "admin"]), tagsController.createTag);
