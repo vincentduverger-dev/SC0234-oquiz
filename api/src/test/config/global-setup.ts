@@ -1,8 +1,8 @@
 import { execSync } from "node:child_process"; // Permet de lancer des commandes de terminal
 import type { Server } from "node:http"; // Permet de lancer un serveur http
 import { after, before, beforeEach, type TestContext } from "node:test";
-import { app } from "../../src/app.ts";
-import { prisma } from "../../src/models/index.ts";
+import { app } from "../../app.ts";
+import { prisma } from "../../models/index.ts";
 
 // ================================================================================
 // Objectif de ce fichier : mettre en place l'environnement des tests d'intégration
@@ -28,7 +28,7 @@ let server: Server;
 
 // Hook before : s'exécute une fois avant l'ensemble des tests
 // Cross-platform wait
-const wait = (ms:any) => new Promise(resolve => setTimeout(resolve, ms));
+const wait = (ms: any) => new Promise(resolve => setTimeout(resolve, ms));
 
 before(async () => {
   try {
@@ -40,7 +40,7 @@ before(async () => {
 
   // Docker run command remains the same
   execSync(`docker run -d --name oquiztest -p ${process.env.POSTGRES_PORT}:5432 -e POSTGRES_USER=${process.env.POSTGRES_USER} -e POSTGRES_PASSWORD=${process.env.POSTGRES_PASSWORD} -e POSTGRES_DB=${process.env.POSTGRES_DB} postgres:17-alpine`);
-  
+
   // Use Promise-based wait instead of shell sleep
   await wait(1000);  // 1 second wait
 
@@ -52,7 +52,7 @@ before(async () => {
 
 // Hook beforeEach : s'exécute une fois avant chaque test
 beforeEach(async (t) => {
-  (t as TestContext).mock.method(console, "info", () => {});
+  (t as TestContext).mock.method(console, "info", () => { });
 
   await truncateTables();
 });
