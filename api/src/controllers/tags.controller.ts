@@ -1,8 +1,7 @@
 import type { Request, Response } from "express";
 import z from "zod";
-import { parseIdFromParams } from "../utils/parsers.ts";
 import { ConflictError, NotFoundError } from "../lib/errors.ts";
-import { prisma, type Tag } from "../models/index.model.ts";
+import { prisma, type Tag } from "../models/index.ts";
 import { assertParentTagExistsWhenProvided, assertUniqueTagName } from "../lib/validators.ts";
 
 export async function getAllTags(req: Request, res: Response) {
@@ -34,7 +33,7 @@ export async function getAllTags(req: Request, res: Response) {
 
 export async function getOneTag(req: Request, res: Response) {
     // Get ID from params
-    const tagId = await parseIdFromParams(req.params.id);
+    const tagId = await z.coerce.number().int().min(1).parseAsync(req.params.id);
 
     // Query database
     const tag = await prisma.tag.findUnique({
@@ -69,7 +68,7 @@ export async function createTag(req: Request, res: Response) {
     const tag = await prisma.tag.create({
         data: {
             name,
-            author_id: req.user.userId as number, // ici on peut forcer l'assertion de type car si on n'a pas de user authentifié le MW rejette la requête avant qu'elle atteigne le controller
+            author_id: req.user?.userId as number, // ici on peut forcer l'assertion de type car si on n'a pas de user authentifié le MW rejette la requête avant qu'elle atteigne le controller
             ...(color && { color }),
             ...(parent_tag_id && { parent_tag_id })
         }
@@ -81,7 +80,7 @@ export async function createTag(req: Request, res: Response) {
 
 export async function updateTag(req: Request, res: Response) {
     // Validations body & id
-    const tagId = await parseIdFromParams(req.params.id);
+    const tagId = await z.coerce.number().int().min(1).parseAsync(req.params.id);
 
     const { name, color, parent_tag_id } = await z.object({
         name: z.string().min(1).optional(),
@@ -115,7 +114,7 @@ export async function updateTag(req: Request, res: Response) {
 }
 
 export async function deleteTag(req: Request, res: Response) {
-    const tagId = await parseIdFromParams(req.params.id);
+    const tagId = await z.coerce.number().int().min(1).parseAsync(req.params.id);
 
     const tag = req.itemData ?? await prisma.tag.findUnique({ where: { id: tagId } });
     if (!tag) { throw new NotFoundError("Tag not found"); }
