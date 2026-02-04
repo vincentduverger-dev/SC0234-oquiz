@@ -14,7 +14,7 @@ router.get("/levels/:id", checkRoles(['member', 'author', 'admin']), levelsContr
 router.post("/levels", checkRoles(['admin']), levelsController.createLevel);
 
 // Modifier un level
-router.put("/levels/:id", checkRoles(['admin']), levelsController.updateLevel);
+router.patch("/levels/:id", checkRoles(['admin']), levelsController.updateLevel);
 
 // Supprimer un level
 router.delete("/levels/:id", checkRoles(['admin']), levelsController.deleteLevel);
