@@ -1,27 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 generator client {
-  provider = "prisma-client"
-  output   = "./generated"
+  provider      = "prisma-client"
+  output        = "./generated"
+  binaryTargets = ["linux-musl-openssl-3.0.x", "debian-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
 }
 
 model User {
-  id Int @id @default(autoincrement())
-
+  id        Int    @id @default(autoincrement())
   firstname String
   lastname  String
-  email     String @unique()
+  email     String @unique
   password  String
   role      Role   @default(member)
 
-  created_at    DateTime       @default(now())
-  updated_at    DateTime       @default(now()) @updatedAt
-  refreshTokens RefreshToken[]
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
 
-  @@map("user") // Correspondance entre le model User dans le code et la table "user" dans la BDD
+  quizzes      Quiz[]
+  Attempt      Attempt[]
+  RefreshToken RefreshToken[]
+  tags         Tag[]
+
+  @@map("users") // Nom de la table en BDD
 }
 
 // On utilise un enum pour n'autoriser que certains roles stricts
@@ -31,6 +41,43 @@ enum Role {
   admin
 }
 
+model Quiz {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  author    User @relation(fields: [author_id], references: [id])
+  author_id Int
+
+  questions Question[]
+  tags      QuizHasTag[]
+  Attempt   Attempt[]
+
+  @@map("quizzes")
+}
+
+model Question {
+  id          Int     @id @default(autoincrement())
+  description String
+  anecdote    String?
+  wiki_link   String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  quiz    Quiz @relation(fields: [quiz_id], references: [id])
+  quiz_id Int
+
+  choices  Choice[]
+  level    Level?   @relation(fields: [level_id], references: [id])
+  level_id Int?
+
+  @@map("questions")
+}
+
 model Level {
   id   Int    @id @default(autoincrement())
   name String @unique()
@@ -38,7 +85,70 @@ model Level {
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 
-  @@map("level")
+  questions Question[]
+
+  @@map("levels")
+}
+
+model Choice {
+  id          Int     @id @default(autoincrement())
+  description String
+  is_valid    Boolean
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  question    Question @relation(fields: [question_id], references: [id])
+  question_id Int
+
+  @@map("choices")
+}
+
+model Tag {
+  id    Int     @id @default(autoincrement())
+  name  String
+  color String? @default("#f0f")
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  parent_tag    Tag?  @relation("TagToTag", fields: [parent_tag_id], references: [id])
+  children_tags Tag[] @relation("TagToTag")
+  parent_tag_id Int?
+
+  author      User         @relation(fields: [author_id], references: [id])
+  author_id   Int
+  quizHasTags QuizHasTag[]
+
+  @@map("tags")
+}
+
+model QuizHasTag {
+  quiz    Quiz @relation(fields: [quiz_id], references: [id])
+  quiz_id Int
+
+  tag    Tag @relation(fields: [tag_id], references: [id])
+  tag_id Int
+
+  @@id([quiz_id, tag_id])
+  @@map("quizzes_has_tags")
+}
+
+model Attempt {
+  id        Int @id @default(autoincrement())
+  score     Int
+  max_score Int
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  user    User @relation(fields: [user_id], references: [id])
+  user_id Int
+
+  quiz    Quiz @relation(fields: [quiz_id], references: [id])
+  quiz_id Int
+
+  @@map("attempts")
 }
 
 model RefreshToken {
