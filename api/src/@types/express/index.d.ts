@@ -16,6 +16,7 @@ declare global {
                 userId?: TokenPayload["userId"]
                 role?: TokenPayload["role"]
             }
+            itemData?: Prisma.JsonValue
         }
     }
 }

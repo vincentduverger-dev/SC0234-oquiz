@@ -120,7 +120,7 @@ describe('[POST] /levels', () => {
   });
 });
 
-describe('[PUT] /api/levels/:id', () => {
+describe('[patch] /api/levels/:id', () => {
   it('should update the level name and return the updated level', async () => {
     // Arrange
     const levels = await prisma.level.createManyAndReturn({ data: testLevels });
@@ -129,7 +129,7 @@ describe('[PUT] /api/levels/:id', () => {
     const body = { name: updatedName };
 
     // Act
-    const { data: updatedLevel } = await adminRequester.put(`/levels/${levelToUpdate.id}`, body);
+    const { data: updatedLevel } = await adminRequester.patch(`/levels/${levelToUpdate.id}`, body);
 
     // Assert
     assert.strictEqual(updatedLevel.id, levelToUpdate.id);
@@ -147,7 +147,7 @@ describe('[PUT] /api/levels/:id', () => {
     const expectedStatus = 422;
 
     // Act
-    const { status } = await adminRequester.put(`/levels/${level.id}`, body);
+    const { status } = await adminRequester.patch(`/levels/${level.id}`, body);
 
     // Assert
     assert.equal(status, expectedStatus);
@@ -160,7 +160,7 @@ describe('[PUT] /api/levels/:id', () => {
     const expectedStatus = 404;
 
     // Act
-    const { status: result } = await adminRequester.put(`/levels/${fakeId}`, body);
+    const { status: result } = await adminRequester.patch(`/levels/${fakeId}`, body);
 
     // Assert
     assert.strictEqual(result, expectedStatus);
