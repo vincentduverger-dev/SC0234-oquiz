@@ -6,6 +6,7 @@ import { router as levelRouter } from "./levels.router.ts";
 import { router as authRouter } from "./auth.router.ts";
 import swaggerJSDoc from "swagger-jsdoc";
 import path from "node:path";
+import { router as tagRouter } from "./tags.router.ts";
 
 
 export const router = Router();
@@ -25,3 +26,4 @@ const spec = swaggerJSDoc({
     apis: [path.join(import.meta.dirname, '*.router.ts')]
 });
 router.use('/docs', swaggerUi.serve, swaggerUi.setup(spec));
+router.use('/tags', tagRouter)

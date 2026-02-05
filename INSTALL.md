@@ -21,15 +21,17 @@ docker compose up
 **Si j'ai besoin d'installer un module dans un conteneur**
 
 ```bash
+# stopper & démonter les conteneurs
+docker compose down
+
 # Installer en local
 # /api
 npm i mon_module
 
-# Supprimer le cache docker
-docker builder prune
-
-# redémarrer les conteneurs pour prendr ene compte le nouveau module
-docker compose up --build
+# redémarrer les conteneurs pour prendre en compte le nouveau module
+# --build : force à rebuild les images à partir des Dockerfile (donc prendre en compte les nouveaux modules dans package.json)
+# --no-cache : rebuild des images de 0 sans utiliser le cache de build
+docker compose up --build --no-cache
 ```
 
 ####

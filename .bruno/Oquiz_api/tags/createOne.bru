@@ -1,0 +1,31 @@
+meta {
+  name: createOne
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/api/tags
+  body: json
+  auth: inherit
+}
+
+body:json {
+  // {
+  //   "name" : "tesTag",
+  //   "color" : "#ff00ff"
+  // }
+  
+  {
+    "name" : "testWithParent",
+    "color" : "#ff00ff",
+    "parent_tag_id": 1
+  }
+  
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
