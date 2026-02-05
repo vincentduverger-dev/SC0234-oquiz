@@ -36,7 +36,7 @@ export function globalErrorHandler(error: Error, req: Request, res: Response, ne
 
 
     // Pour tous les autres cas d'erreur non gérés on renvoie une 500
-    res.status(500).json({
+    return res.status(500).json({
         error: "Internal server error",
         status: 500,
         ...stacktraceObject

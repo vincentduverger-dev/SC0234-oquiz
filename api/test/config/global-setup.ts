@@ -28,7 +28,7 @@ let server: Server;
 
 // Hook before : s'exécute une fois avant l'ensemble des tests
 // Cross-platform wait
-const wait = (ms:any) => new Promise(resolve => setTimeout(resolve, ms));
+const wait = (ms: any) => new Promise(resolve => setTimeout(resolve, ms));
 
 before(async () => {
   try {
@@ -40,11 +40,11 @@ before(async () => {
 
   // Docker run command remains the same
   execSync(`docker run -d --name oquiztest -p ${process.env.POSTGRES_PORT}:5432 -e POSTGRES_USER=${process.env.POSTGRES_USER} -e POSTGRES_PASSWORD=${process.env.POSTGRES_PASSWORD} -e POSTGRES_DB=${process.env.POSTGRES_DB} postgres:17-alpine`);
-  
+
   // Use Promise-based wait instead of shell sleep
   await wait(1000);  // 1 second wait
 
-  execSync(`npx prisma migrate deploy`);
+  execSync(`npx prisma db push`);
 
   server = app.listen(process.env.PORT);
 });
@@ -52,7 +52,7 @@ before(async () => {
 
 // Hook beforeEach : s'exécute une fois avant chaque test
 beforeEach(async (t) => {
-  (t as TestContext).mock.method(console, "info", () => {});
+  (t as TestContext).mock.method(console, "info", () => { });
 
   await truncateTables();
 });
