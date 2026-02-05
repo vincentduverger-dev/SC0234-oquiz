@@ -4,6 +4,22 @@ import { checkRoles } from "../middlewares/accessControl.middleware.ts";
 
 export const router = Router();
 
+/**
+ * @openapi
+* /levels:
+*   get:
+*     tags:
+*       - Levels
+*     description: Return all levels
+*     responses:
+*       200:
+*         description: An array of Level objects
+*         schema:
+*           type: array
+*           items:
+*             $ref: "#/definitions/Level"
+*/
+
 // Récupérer tous les levels
 router.get("/levels", checkRoles(["member", "author", "admin"]), levelsController.getAllLevels);
 
@@ -18,3 +34,26 @@ router.put("/levels/:id", checkRoles(['admin']), levelsController.updateLevel);
 
 // Supprimer un level
 router.delete("/levels/:id", checkRoles(['admin']), levelsController.deleteLevel);
+
+
+/** 
+ * @openapi
+ * definitions:
+ *  Level:
+ *    type: "object"
+ *    properties:
+ *      id:
+ *        type: "number"
+ *        example: 1
+ *      name:
+ *        type: "string"
+ *        example: "Titre du niveau"
+ *      created_at:
+ *        type: "string"
+ *        format: "date-time"
+ *        example: "2022-01-01T12:00:00.000Z"
+ *      updated_at:
+ *        type: "string"
+ *        format: "date-time"
+ *        example: "2022-01-01T12:00:00.000Z"
+*/
