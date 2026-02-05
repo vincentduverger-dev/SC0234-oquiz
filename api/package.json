@@ -39,12 +39,15 @@
   },
   "dependencies": {
     "@types/cookie-parser": "^1.4.10",
+    "@types/express-xss-sanitizer": "^2.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "argon2": "^0.44.0",
     "axios": "^1.13.4",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "express": "^5.1.0",
+    "express-xss-sanitizer": "^2.0.1",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "sc02-oquiz": "file:..",
     "zod": "^4.3.6"
