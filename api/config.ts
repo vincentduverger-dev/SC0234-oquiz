@@ -1,5 +1,9 @@
 export const config = {
   port: parseInt(process.env.PORT || "3000"),
   jwt_secret: "mon super JWT secret sécurisé",
-  isProduction: process.env.NODE_ENV === "production"
+  isProduction: process.env.NODE_ENV === "production",
+  logs_path: process.env.LOGS_PATH || 'logs'
 };
+
+
+

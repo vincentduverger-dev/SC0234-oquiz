@@ -30,6 +30,7 @@ services:
       PORT: ${API_LOCAL_PORT}
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@oquiz-db:5432/${POSTGRES_DB}
       NODE_ENV: development
+      LOGS_PATH: ${API_LOGS_PATH}
     ports:
       - ${API_LOCAL_PORT}:${API_LOCAL_PORT}
     volumes:

@@ -17,6 +17,41 @@
 
 ## Microservices
 
+### Gestion des variables d'env
+
+*Lorsque je veux rajouter une variable d'environnement à un service*
+
+1. **docker-compose.yml** -> rajouter la variable sur le container concerné
+
+```yml
+  ...
+  environment:
+        ...
+        LOGS_PATH: ${API_LOGS_PATH}
+```
+
+
+
+2. On crée puis récupère la valeur de cette variable depuis le **.env** correspondant au docker compose
+
+```txt
+<!-- .env -->
+API_LOGS_PATH=logs
+```
+
+!! On n'oublie pas de la rajouter au *.env.example*
+
+
+
+3. On recupère cette variable au niveau de notre code via **config.ts**
+
+```js
+export const config = {
+  ...
+  logs_path: process.env.LOGS_PATH || 'logs'
+};
+```
+
 ### Brainstorming ?
 
 - découpage une application en petites fonctionnalités

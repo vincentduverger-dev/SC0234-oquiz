@@ -10,3 +10,6 @@ dist
 # PRISMA
 generated
 
+# LOGS
+logs
+
