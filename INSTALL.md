@@ -31,7 +31,9 @@ npm i mon_module
 # redémarrer les conteneurs pour prendre en compte le nouveau module
 # --build : force à rebuild les images à partir des Dockerfile (donc prendre en compte les nouveaux modules dans package.json)
 # --no-cache : rebuild des images de 0 sans utiliser le cache de build
-docker compose up --build --no-cache
+docker compose build --no-cache
+
+docker compose up
 ```
 
 ####
