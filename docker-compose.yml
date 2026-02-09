@@ -1,4 +1,6 @@
 services:
+
+# ===================== service oquiz API ================
   oquiz-db:
     image: postgres:17 # Image permettant de créer le conteneur
     restart: unless-stopped # Redémarre automatiquement mon service en cas de crash (sauf si je l'ai éteint manuellement)
@@ -35,7 +37,7 @@ services:
       - ./api:/app
       - /app/node_modules # Exclure les node_modules local, et utiliser uniquement ceux du conteneur
     networks:
-      - oquiz-network
+      - oquiz-network 
     depends_on:
       oquiz-db:
         condition: service_healthy
@@ -57,6 +59,11 @@ services:
       - /app/node_modules
     networks:
       - oquiz-network
+
+
+
+
+
 
 networks:
   oquiz-network:
