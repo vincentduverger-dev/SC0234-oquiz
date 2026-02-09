@@ -1,6 +1,5 @@
 services:
-
-# ===================== service oquiz API ================
+  # ===================== service oquiz API ================
   oquiz-db:
     image: postgres:17 # Image permettant de créer le conteneur
     restart: unless-stopped # Redémarre automatiquement mon service en cas de crash (sauf si je l'ai éteint manuellement)
@@ -38,7 +37,7 @@ services:
       - ./api:/app
       - /app/node_modules # Exclure les node_modules local, et utiliser uniquement ceux du conteneur
     networks:
-      - oquiz-network 
+      - oquiz-network
     depends_on:
       oquiz-db:
         condition: service_healthy
@@ -61,10 +60,25 @@ services:
     networks:
       - oquiz-network
 
+  # ===================== service oquiz LOGS ================
 
-
-
-
+  oquiz-logs:
+    build:
+      context: ./log-service
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    environment:
+      PORT: ${LOGS_API_LOCAL_PORT}
+      NODE_ENV: development
+    ports:
+      - ${LOGS_API_LOCAL_PORT}:${LOGS_API_LOCAL_PORT}
+    volumes:
+      # On crée un bind volume pour le code source, qui nous permettra de développer au sein du conteneur -> on redirige l'utilisation du dossier /app depuis le conteneur vers le dossier local /api => permet le hot reload en dev
+      - ./log-service:/app
+      - /app/node_modules # Exclure les node_modules local, et utiliser uniquement ceux du conteneur
+    networks:
+      - oquiz-network
+    command: npm run dev
 
 networks:
   oquiz-network:

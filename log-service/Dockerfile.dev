@@ -1,0 +1,19 @@
+# Dockerfile pour le développement
+
+FROM node:22-alpine
+
+# On crée un répertoire app et on s'y déplace
+WORKDIR /app
+
+# local conteneur
+COPY package*.json ./
+
+RUN npm install
+
+COPY ./ ./
+
+# Spécifier un port que le conteneur va exposer (à titre informatif)
+EXPOSE 3000
+
+# Commande de démarrage du conteneur
+CMD ["npm", "run", "dev"]

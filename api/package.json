@@ -52,7 +52,6 @@
     "express-xss-sanitizer": "^2.0.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
-    "sc02-oquiz": "file:..",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "winston": "^3.19.0",
