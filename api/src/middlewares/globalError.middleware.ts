@@ -1,7 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import z from "zod";
 import { HttpClientError } from "../lib/errors.ts";
-import { logger } from "../lib/logger.ts";
 
 
 export function globalErrorHandler(error: Error, req: Request, res: Response, next: NextFunction) {
@@ -15,8 +14,8 @@ export function globalErrorHandler(error: Error, req: Request, res: Response, ne
     // On va gérer et différencier différents tyes d'erreur
     // 1 - Gérer les erreurs de validation Zod - avec parse zod throw les erreurs potentielles, on les récupère ici
     if (error instanceof z.ZodError) {
-        // On utilise le logger de lareq pour avoir son requestId dans le log
-        logger.info('ZodError', error)
+        // On utilise le logger de la request pour avoir son requestId dans le log
+        req.logger.info('ZodError', error)
 
         // 422 -> Unprocessable entity
         return res.status(422).json({
@@ -28,7 +27,7 @@ export function globalErrorHandler(error: Error, req: Request, res: Response, ne
 
     // 2 - Erreur HTTP
     if (error instanceof HttpClientError) {
-        logger.info('HttpError', error)
+        req.logger.info('HttpError', error)
         // On retourne l'erreur avec ses propres attributs
         return res.status(error.status).json({
             status: error.status,
@@ -38,7 +37,7 @@ export function globalErrorHandler(error: Error, req: Request, res: Response, ne
     }
 
 
-    logger.error('ServerError', error)
+    req.logger.error('ServerError', error)
     // Pour tous les autres cas d'erreur non gérés on renvoie une 500
     return res.status(500).json({
         error: "Internal server error",

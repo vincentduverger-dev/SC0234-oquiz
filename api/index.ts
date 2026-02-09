@@ -6,6 +6,3 @@ import { logger } from "./src/lib/logger.ts";
 app.listen(config.port, () => {
   console.info(`🚀 Server started at http://localhost:${config.port}`);
 });
-
-
-logger.info("Mon log d'info")

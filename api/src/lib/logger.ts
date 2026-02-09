@@ -6,6 +6,11 @@ export const logger = createLogger({
     // On définit le niveau minimal de logs qu'on veut gérer = le niveau choisi + ceux supérieurs 
     // https://www.npmjs.com/package/winston#logging-levels
     level: config.isProduction ? 'http' : 'debug',
+
+    defaultMeta: {
+        service: "oquiz-api",
+        pid: process.pid
+    },
     // On peut spécifier un format pour nos logs = les infos qu'on va vouloir y faire apparaître
     format: format.combine(
         format.timestamp(),

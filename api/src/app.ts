@@ -9,6 +9,7 @@ import { router as apiRouter } from "./routers/index.router.ts";
 import { infoMiddleware } from "./middlewares/info.middleware.ts";
 import { globalErrorHandler } from "./middlewares/globalError.middleware.ts";
 import { notFoundMW } from "./middlewares/notFound.middleware.ts";
+import { logRequest } from "./middlewares/requestLogger.middleware.ts";
 
 // Créer une app Express
 export const app = express();
@@ -31,6 +32,9 @@ app.use(express.json());
 app.use(xss());
 
 // -----------------TOUS LES MW SUPPLEMENTAIRES SERONT A PLACER A PARTIR D ICI----------------
+
+// Vu qu'on veut log toutes les requête dès qu'elles rentren sur le serveur, on pose le MW ici
+app.use(logRequest)
 
 // Brancher le routeur de l'API
 app.use("/api", apiRouter);
