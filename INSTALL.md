@@ -29,10 +29,11 @@ docker compose down
 npm i mon_module
 
 # redémarrer les conteneurs pour prendre en compte le nouveau module
-# --build : force à rebuild les images à partir des Dockerfile (donc prendre en compte les nouveaux modules dans package.json)
+# docker build : force à rebuild les images à partir des Dockerfile (donc prendre en compte les nouveaux modules dans package.json)
 # --no-cache : rebuild des images de 0 sans utiliser le cache de build
 docker compose build --no-cache
 
+# On redémarre les conteneurs avec les nouvelles versions des images
 docker compose up
 ```
 
