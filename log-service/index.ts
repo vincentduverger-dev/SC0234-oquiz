@@ -11,6 +11,9 @@ app.listen(PORT, () => {
 });
 
 
+console.log("ENV : ", process.env);
+
+
 
 // Demo requête mongodb
 
