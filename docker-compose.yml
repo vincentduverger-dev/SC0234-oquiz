@@ -62,7 +62,7 @@ services:
 
   # ===================== service oquiz LOGS ================
 
-  oquiz-logs:
+  logs-api:
     build:
       context: ./log-service
       dockerfile: Dockerfile.dev
@@ -70,6 +70,7 @@ services:
     environment:
       PORT: ${LOGS_API_LOCAL_PORT}
       NODE_ENV: development
+      DATABASE_URL: ${LOGS_API_DATABASE_URL}
     ports:
       - ${LOGS_API_LOCAL_PORT}:${LOGS_API_LOCAL_PORT}
     volumes:
@@ -79,6 +80,15 @@ services:
     networks:
       - oquiz-network
     command: npm run dev
+
+  logs-db:
+    image: mongo:latest
+    restart: unless-stopped
+    ports:
+      - ${LOGS_DB_LOCAL_PORT}:27017
+    networks:
+      - oquiz-network
+    command: mongod --quiet --logpath /dev/null # commmande pour lancer mongo en mode "quiet" pas trop de logs
 
 networks:
   oquiz-network:
