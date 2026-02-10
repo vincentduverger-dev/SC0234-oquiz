@@ -30,25 +30,45 @@ export interface LogDocument {
     [key: string]: unknown
 }
 
-
+/**
+ * Récupère la collection Mongo (lazy)
+ */
 async function getLogsCollection() {
   const client = await getClient();
   return client.db().collection<LogDocument>("logs");
 }
 
-
-
-export const insert = async (log: createLogDTO) => {
+/**
+ * Créer un log
+ */
+export async function createLog(
+  log: createLogDTO
+): Promise<InsertOneResult<LogDocument>> {
   const collection = await getLogsCollection();
-  return collection.insertOne(log);
-};
 
-export const findAll = async () => {
-  const collection = await getLogsCollection();
-  return collection.find().toArray();
-};
+  return collection.insertOne({
+    ...log,
+    // sécurité : si jamais le timestamp n’a pas été injecté
+    timestamp: log.timestamp ?? new Date(),
+  });
+}
 
-export const findOneById = async (id: string) => {
+/**
+ * Récupérer tous les logs
+ */
+export async function getLogs(): Promise<LogDocument[]> {
   const collection = await getLogsCollection();
+
+  return collection.find().sort({ timestamp: -1 }).toArray();
+}
+
+/**
+ * Récupérer un log par id
+ */
+export async function getLogById(
+  id: string
+): Promise<LogDocument | null> {
+  const collection = await getLogsCollection();
+
   return collection.findOne({ _id: new ObjectId(id) });
-};
+}
