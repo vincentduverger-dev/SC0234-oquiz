@@ -14,7 +14,7 @@ export const LogLevelSchema = z.enum([
 
 // looseObject permet de laisser passer les propriétés supplémentaires non définies dans le schéma, parfait pour nos logs dont la structure est flexible et pour mongoDB
 export const createLogSchema = z.looseObject({
-    timestamp: z.coerce.date().default(() => new Date()),
+    timestamp: z.coerce.date().default(() => new Date()), // On rajoute automatiquement la date actuelle par défaut
     level: LogLevelSchema,
     message: z.string().min(1, 'Message trop court').max(1000, 'Message trop long'),
     service: z.string().min(1, 'Le nom du service est requis').max(100, 'Service trop long'),
