@@ -3,6 +3,7 @@
 
 import type { NextFunction, Request, Response } from "express";
 import { createLogSchema } from "./validators/logs.ts";
+import { getClient } from "./lib/db.ts";
 
 export interface LogDocument {
     // Propriétés obligatoires
@@ -10,7 +11,7 @@ export interface LogDocument {
     level: string;
     message: string;
     service: string;
-    pid: number;
+    pid?: number;
     // Propriétés optionnelles : on les type quand même car si elles sont présentes, on veut qu'elles soient du bon type
     method?: string;
     path?: string;
@@ -39,6 +40,9 @@ export interface LogDocument {
 
 
 export const createLog = async (req: Request, res: Response, next: NextFunction) => {
+
+    console.log(req.body);
+
     // On s'assure que les données entrantes via req.body respectent certaines règles -> validateur schéma zod
 
     // Pour les propriétés connues -> zod va s'assurer qu'elles respectent les règles énoncées dans le schéma
@@ -47,6 +51,9 @@ export const createLog = async (req: Request, res: Response, next: NextFunction)
     const parsedLog = await createLogSchema.parseAsync(req.body)
 
     // On peut insérer le log en BDD
-    
+    const client = await getClient()
 
+    const created = await client.db().collection('logs').insertOne(parsedLog)
+
+    res.status(201).json(created)
 }

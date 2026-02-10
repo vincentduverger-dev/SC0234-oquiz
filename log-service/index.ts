@@ -10,4 +10,6 @@ app.listen(PORT, () => {
     console.info(`🚀 Server started at http://localhost:${PORT}`);
 });
 
+app.use(Express.json())
+
 app.use('/logs', logRouter)

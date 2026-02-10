@@ -1,0 +1,40 @@
+meta {
+  name: createLog
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3002/logs
+  body: json
+  auth: inherit
+}
+
+body:json {
+  // {
+  //   "level": "info",
+  //   "message": "Utilisateur connecté",
+  //   "service": "auth"
+  // }
+  
+  {
+    "level": "error",
+    "message": "Exception non gérée",
+    "service": "orders",
+    "version": "1.4.2",
+    "environment": "production",
+    "userId": "u_123",
+    "requestId": "req_456",
+    "sessionId": "sess_789",
+    "hostname": "api-1",
+    "ip": "203.0.113.10",
+    "userAgent": "Mozilla/5.0 ...",
+    "metadata": { "orderId": "ord_42", "retry": true },
+    "stackTrace": "Error: ..."
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
