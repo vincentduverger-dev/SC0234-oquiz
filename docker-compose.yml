@@ -70,16 +70,19 @@ services:
     environment:
       PORT: ${LOGS_API_LOCAL_PORT}
       NODE_ENV: development
-      DATABASE_URL: ${LOGS_API_DATABASE_URL}
+      MONGODB_URI: mongodb://logs-db:27017/logs_db
+      DATABASE_URL: mongodb://logs-db:27017/logs_db
     ports:
       - ${LOGS_API_LOCAL_PORT}:${LOGS_API_LOCAL_PORT}
     volumes:
-      # On crée un bind volume pour le code source, qui nous permettra de développer au sein du conteneur -> on redirige l'utilisation du dossier /app depuis le conteneur vers le dossier local /api => permet le hot reload en dev
       - ./log-service:/app
-      - /app/node_modules # Exclure les node_modules local, et utiliser uniquement ceux du conteneur
+      - /app/node_modules
     networks:
       - oquiz-network
     command: npm run dev
+    depends_on:
+      - logs-db
+
 
   logs-db:
     image: mongo:latest
@@ -89,9 +92,19 @@ services:
     networks:
       - oquiz-network
     command: mongod --quiet --logpath /dev/null # commmande pour lancer mongo en mode "quiet" pas trop de logs
-
+    volumes:
+     - logs-db-volume:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    
 networks:
   oquiz-network:
 
 volumes:
   oquiz-db-volume:
+  logs-db-volume:
+
+  
