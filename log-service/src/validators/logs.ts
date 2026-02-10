@@ -28,3 +28,6 @@ export const createLogSchema = z.looseObject({
     userAgent: z.string().max(1000).optional(),
     stackTrace: z.string().max(50000).optional(),
 })
+
+
+export type createLogDTO = z.infer<typeof createLogSchema>;

@@ -39,3 +39,12 @@ MongoDB = Document Database
 Le service permet également de masquer les détails d'implémentation dans le controller : le code dédié à requêter la DB se trouvera dans `service`
 
 Si demain je décide d'utiliser Prisma plutôt que mongoDB pour faire les requêtes BDD, je n'aurai pas à modifier le code du controller, uniquement du service.
+
+
+## DTO
+
+Data Transfer Object
+
+Le DTO c'est l'objet que nous retourne un `zodSchema.parse`
+
+On crée un objet à partir des données entrantes dans l'app, et on va manipuler cet objet : le DTO., plutôt que les donnnées brutes telles qu'envoyée dans la req -> plus safe et plus prévisible
