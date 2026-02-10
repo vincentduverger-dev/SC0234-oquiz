@@ -1,4 +1,4 @@
-import { MongoClient, Db, Collection, Document } from "mongodb";
+import { MongoClient, Db, Collection } from "mongodb";
 
 const MONGODB_URI =
   process.env.MONGODB_URI ??
@@ -8,6 +8,19 @@ const MONGODB_URI =
 let client: MongoClient | null = null;
 let db: Db | null = null;
 
+export async function getClient(): Promise<MongoClient> {
+  if (client) return client;
+
+  client = new MongoClient(MONGODB_URI);
+  await client.connect();
+  return client;
+}
+
+export async function closeClient(): Promise<void> {
+  if (!client) return;
+  await client.close();
+  client = null;
+}
 /**
  * Connexion Mongo (singleton).
  * À appeler au démarrage (ou à la première requête).
