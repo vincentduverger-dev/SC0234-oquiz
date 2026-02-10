@@ -2,8 +2,9 @@
 // ! On utilise mongoDB, le but est donc de bénéficier des avantages de Mongo et donc de garder une structure flexible
 
 import type { NextFunction, Request, Response } from "express";
-import { createLogSchema } from "./validators/logs.ts";
 import { getClient } from "./lib/db.ts";
+import { insertLog } from "./log.service.ts";
+import { createLogSchema } from "./validators/logs.ts";
 
 export interface LogDocument {
     // Propriétés obligatoires
@@ -40,9 +41,6 @@ export interface LogDocument {
 
 
 export const createLog = async (req: Request, res: Response, next: NextFunction) => {
-
-    console.log(req.body);
-
     // On s'assure que les données entrantes via req.body respectent certaines règles -> validateur schéma zod
 
     // Pour les propriétés connues -> zod va s'assurer qu'elles respectent les règles énoncées dans le schéma
@@ -50,10 +48,9 @@ export const createLog = async (req: Request, res: Response, next: NextFunction)
     // Si il y a des propriétés inconnues -> elles ne seront pas validées (aucune règles spécifiées vu qu'elles sont inconnues) mais zod va les laisser passer et nous les retourner dans l'objet `parsedLog` grâce à l'utilisation dans le schéma de `z.looseObject`
     const parsedLog = await createLogSchema.parseAsync(req.body)
 
-    // On peut insérer le log en BDD
-    const client = await getClient()
-
-    const created = await client.db().collection('logs').insertOne(parsedLog)
+    // On va mettre le code relatif à la BDD dans un service dédié, et on appelle les méthodes depuis le controller
+    const created = await insertLog(parsedLog)
 
     res.status(201).json(created)
 }
+
