@@ -1,42 +1,65 @@
-// On va créer une interface pour "typer" au mieux nos logs
-// ! On utilise mongoDB, le but est donc de bénéficier des avantages de Mongo et donc de garder une structure flexible
-
-import type { NextFunction, Request, Response } from "express";
-import { getClient } from "./lib/db.ts";
-import * as LogService from "./log.service.ts";
+import type { Request, Response, NextFunction } from "express";
 import { createLogSchema } from "./validators/logs.ts";
+import { createLog, getLogs, getLogById } from "./log.service.ts";
 import z from "zod";
 
+/**
+ * POST /api/logs
+ */
+export const createLogHandler = async (
+  req: Request,
+  res: Response,
+  _next: NextFunction
+): Promise<void> => {
+  // parseAsync si tu préfères rester async partout (équivalent à parse ici)
+  const parsed = await createLogSchema.parseAsync(req.body);
 
-export const createLog = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    // On s'assure que les données entrantes via req.body respectent certaines règles -> validateur schéma zod
+  // Enrichissement serveur (énoncé)
+  const toInsert = {
+    ...parsed,
+    timestamp: parsed.timestamp ?? new Date(),
+    environment: parsed.environment ?? "development",
+  };
 
-    // Pour les propriétés connues -> zod va s'assurer qu'elles respectent les règles énoncées dans le schéma
+  const result = await createLog(toInsert);
 
-    // Si il y a des propriétés inconnues -> elles ne seront pas validées (aucune règles spécifiées vu qu'elles sont inconnues) mais zod va les laisser passer et nous les retourner dans l'objet `parsedLog` grâce à l'utilisation dans le schéma de `z.looseObject`
-    const parsedLog = await createLogSchema.parseAsync(req.body)
+  res.status(201).json({
+    id: result.insertedId,
+    ...toInsert,
+  });
+};
 
-    // On va mettre le code relatif à la BDD dans un service dédié, et on appelle les méthodes depuis le controller
-    const created = await LogService.insert(parsedLog)
+/**
+ * GET /api/logs
+ */
+export const getLogsHandler = async (
+  _req: Request,
+  res: Response,
+  _next: NextFunction
+): Promise<void> => {
+  const logs = await getLogs();
+  res.status(200).json(logs);
+};
 
-    res.status(201).json(created)
-}
+/**
+ * GET /api/logs/:id
+ */
+export const getLogByIdHandler = async (
+  req: Request,
+  res: Response,
+  _next: NextFunction
+): Promise<void> => {
+  // Validation params (tu faisais déjà ça : on garde)
+  const { id } = await z
+    .object({ id: z.string().min(1) })
+    .parseAsync(req.params);
 
+  const log = await getLogById(id);
 
-export const getLogs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const logs = await LogService.findAll()
-    res.json(logs)
-}
+  if (!log) {
+    res.status(404).json({ error: "Log not found" });
+    return;
+  }
 
-export const getOneLogById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-
-    // Il faut qu'on récupère l'id
-    const { id } = await z.object({ id: z.string().min(1) }).parseAsync(req.params)
-    // Erreur si pas présent
-    if (!id) {
-        throw new Error("Id manquant")
-    }
-
-    const log = await LogService.findOneById(id)
-    res.json(log)
-}
+  res.status(200).json(log);
+};

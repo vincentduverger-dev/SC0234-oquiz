@@ -1,15 +1,12 @@
-import Express from 'express'
-import { logRouter } from './src/log.router.ts';
+import express from "express";
+import { logRouter } from "./src/log.router.js";
 
-const PORT = process.env.PORT || 3001;
+const app = express();
+const PORT = Number(process.env.PORT) || 3002;
 
-const app = Express()
+app.use(express.json());
+app.use("/api/logs", logRouter);
 
-// Démarre un serveur
 app.listen(PORT, () => {
-    console.info(`🚀 Server started at http://localhost:${PORT}`);
+  console.info(`🚀 Log service started at http://localhost:${PORT}`);
 });
-
-app.use(Express.json())
-
-app.use('/logs', logRouter)
