@@ -1,0 +1,40 @@
+meta {
+  name: create log
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3002/api/logs
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "level": "error",
+    "message": "Exception non gérée",
+    "service": "orders",
+    "requestId": "req_456",
+    "sessionId": "sess_789",
+    "metadata": {
+      "orderId": "ord_42",
+      "retry": true
+    },
+    "foo": "bar"
+  }
+}
+
+tests {
+  const json = res.getBody();
+  bru.setVar("logId", json.id);
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
