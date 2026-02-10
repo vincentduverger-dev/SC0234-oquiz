@@ -3,8 +3,9 @@
 
 import type { NextFunction, Request, Response } from "express";
 import { getClient } from "./lib/db.ts";
-import { insertLog } from "./log.service.ts";
+import * as LogService from "./log.service.ts";
 import { createLogSchema } from "./validators/logs.ts";
+import z from "zod";
 
 export interface LogDocument {
     // Propriétés obligatoires
@@ -49,8 +50,26 @@ export const createLog = async (req: Request, res: Response, next: NextFunction)
     const parsedLog = await createLogSchema.parseAsync(req.body)
 
     // On va mettre le code relatif à la BDD dans un service dédié, et on appelle les méthodes depuis le controller
-    const created = await insertLog(parsedLog)
+    const created = await LogService.insert(parsedLog)
 
     res.status(201).json(created)
 }
 
+
+export const getLogs = async (req: Request, res: Response, next: NextFunction) => {
+    const logs = await LogService.findAll()
+    res.json(logs)
+}
+
+export const getOneLogById = async (req: Request, res: Response, next: NextFunction) => {
+
+    // Il faut qu'on récupère l'id
+    const { id } = await z.object({ id: z.string().min(1) }).parseAsync(req.params)
+    // Erreur si pas présent
+    if (!id) {
+        throw new Error("Id manquant")
+    }
+
+    const log = await LogService.findOneById(id)
+    res.json(log)
+}
