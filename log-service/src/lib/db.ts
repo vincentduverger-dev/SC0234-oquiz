@@ -1,19 +1,43 @@
-// Client pour envoyer des requetes à la DB mongo
+import { MongoClient, Db, Collection, Document } from "mongodb";
 
-import { MongoClient } from "mongodb"
+const MONGODB_URI =
+  process.env.MONGODB_URI ??
+  process.env.DATABASE_URL ??
+  "mongodb://localhost:27017/logs_db";
 
+let client: MongoClient | null = null;
+let db: Db | null = null;
 
-let cachedClient: MongoClient | null = null;
+/**
+ * Connexion Mongo (singleton).
+ * À appeler au démarrage (ou à la première requête).
+ */
+export async function getDb(): Promise<Db> {
+  if (db) return db;
 
-// On exporte le client pour faire les requêtes dans nos controllers
+  client = new MongoClient(MONGODB_URI);
+  await client.connect();
 
-export const getClient = async () => {
-    const url = process.env.DATABASE_URL || 'mongodb://logs-db:27017/logs_db'
+  db = client.db(); // prend le nom de DB depuis l'URI (ex: /logs_db)
+  return db;
+}
 
-    if (cachedClient) return cachedClient;
+/**
+ * Helper typé pour récupérer une collection.
+ */
+export async function getCollection<T extends Document = Document>(
+  name: string
+): Promise<Collection<T>> {
+  const database = await getDb();
+  return database.collection<T>(name);
+}
 
-    const client = new MongoClient(url);
-    await client.connect();
-    cachedClient = client;
-    return client;
+/**
+ * Fermeture propre (utile pour tests / arrêt du serveur)
+ */
+export async function closeDb(): Promise<void> {
+  if (!client) return;
+  await client.close();
+  client = null;
+  db = null;
 }
