@@ -2,7 +2,6 @@
 // ! On utilise mongoDB, le but est donc de bénéficier des avantages de Mongo et donc de garder une structure flexible
 
 import type { NextFunction, Request, Response } from "express";
-import { getClient } from "./lib/db.ts";
 import * as LogService from "./log.service.ts";
 import { createLogSchema } from "./validators/logs.ts";
 import z from "zod";
@@ -40,3 +39,25 @@ export const getOneLogById = async (req: Request, res: Response, next: NextFunct
     const log = await LogService.findOneById(id)
     res.json(log)
 }
+
+/**
+ * POST /api/logs/batch
+ */
+export const createBatchHandler = async (
+  req: Request,
+  res: Response,
+  _next: NextFunction
+): Promise<void> => {
+
+  const schema = z.object({
+    data: z.array(createLogSchema).min(1).max(1000)
+  });
+
+  const parsed = await schema.parseAsync(req.body);
+
+  const result = await LogService.createBatch(parsed.data);
+
+  res.status(201).json({
+    insertedCount: result.insertedCount
+  });
+};

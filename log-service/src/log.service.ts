@@ -1,4 +1,4 @@
-import { ObjectId, type InsertOneResult } from "mongodb"
+import { ObjectId, type InsertOneResult, type InsertManyResult } from "mongodb"
 import { getClient } from "./lib/db.ts"
 import type { createLogDTO } from "./validators/logs.ts"
 
@@ -52,3 +52,9 @@ export const findAll = async (): Promise<LogDocument[]> => {
 export const findOneById = async (id: string): Promise<LogDocument | null> => {
     return await collection.findOne({ _id: new ObjectId(id) })
 }
+
+export const createBatch = async (
+  logs: createLogDTO[]
+): Promise<InsertManyResult<LogDocument>> => {
+  return collection.insertMany(logs);
+};
