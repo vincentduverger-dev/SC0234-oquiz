@@ -1,0 +1,40 @@
+meta {
+  name: batch
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:3002/api/logs/batch
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "data": [
+      { "level": "info", "message": "batch log 1", "service": "api" },
+      { "level": "error", "message": "batch log 2", "service": "auth" }
+    ]
+  }
+}
+
+tests {
+  test("status is 201", () => {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  const body = res.getBody();
+  test("insertedCount present", () => {
+    expect(body.insertedCount ?? body?.data?.insertedCount).to.be.a("number");
+  });
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
