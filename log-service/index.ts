@@ -1,5 +1,5 @@
 import Express from 'express'
-import { logRouter } from './src/log.router.ts';
+import { logRouter } from './src/log.router.js';
 
 const PORT = process.env.PORT || 3001;
 
