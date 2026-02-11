@@ -30,25 +30,45 @@ export interface LogDocument {
     [key: string]: unknown
 }
 
-
-// On récupère 1 seule fois le client db pour toutes les méthodes du service
-const client = await getClient()
-// On préconfigure collection avec : la db, la bonne collection et le typage sur la collection, ça nous permettra d'être tranquille pour le typage
-const collection = client.db().collection<LogDocument>('logs')
-
-
-
-export const insert = async (log: createLogDTO): Promise<InsertOneResult<LogDocument>> => {
-    // On reçoit un logque le controller aura déjà validé (avec le schéma zod)
-    // Le seul rôle u service est de faire l'enregistrement en BDD et de retourner le résultat
-    return await collection.insertOne(log)
+/**
+ * Récupère la collection Mongo (lazy)
+ */
+async function getLogsCollection() {
+  const client = await getClient();
+  return client.db().collection<LogDocument>("logs");
 }
 
-export const findAll = async (): Promise<LogDocument[]> => {
-    // .find() crée un curseur -> une prérecherche des résultats du find, pour exécuter la recherche et récupérer les résultats du curseur, il faut utiliser.toArray()
-    return await collection.find().toArray()
+/**
+ * Créer un log
+ */
+export async function createLog(
+  log: createLogDTO
+): Promise<InsertOneResult<LogDocument>> {
+  const collection = await getLogsCollection();
+
+  return collection.insertOne({
+    ...log,
+    // sécurité : si jamais le timestamp n’a pas été injecté
+    timestamp: log.timestamp ?? new Date(),
+  });
 }
 
-export const findOneById = async (id: string): Promise<LogDocument | null> => {
-    return await collection.findOne({ _id: new ObjectId(id) })
+/**
+ * Récupérer tous les logs
+ */
+export async function getLogs(): Promise<LogDocument[]> {
+  const collection = await getLogsCollection();
+
+  return collection.find().sort({ timestamp: -1 }).toArray();
+}
+
+/**
+ * Récupérer un log par id
+ */
+export async function getLogById(
+  id: string
+): Promise<LogDocument | null> {
+  const collection = await getLogsCollection();
+
+  return collection.findOne({ _id: new ObjectId(id) });
 }

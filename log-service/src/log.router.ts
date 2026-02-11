@@ -1,8 +1,17 @@
 import { Router } from "express";
-import { createLog, getLogs, getOneLogById } from "./log.controller.ts";
+import {
+  createLogHandler,
+  getLogsHandler,
+  getLogByIdHandler,
+} from "./log.controller.js";
 
-export const logRouter = Router()
+export const logRouter = Router();
 
-logRouter.post('/', createLog)
-logRouter.get('/', getLogs)
-logRouter.get('/:id', getOneLogById)
+// POST /api/logs
+logRouter.post("/", createLogHandler);
+
+// GET /api/logs
+logRouter.get("/", getLogsHandler);
+
+// GET /api/logs/:id
+logRouter.get("/:id", getLogByIdHandler);

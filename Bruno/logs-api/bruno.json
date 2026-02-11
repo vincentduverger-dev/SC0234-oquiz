@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "logs-api",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
