@@ -22,10 +22,42 @@ export const createLog = async (req: Request, res: Response, next: NextFunction)
 }
 
 
-export const getLogs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const logs = await LogService.findAll()
-    res.json(logs)
-}
+export const getLogs = async (
+  req: Request,
+  res: Response,
+  _next: NextFunction
+): Promise<void> => {
+
+  const schema = z.object({
+    service: z.string().min(1).optional(),
+    level: z.string().min(1).optional(),
+    environment: z.string().min(1).optional(),
+    userId: z.string().min(1).optional(),
+    requestId: z.string().min(1).optional(),
+    sessionId: z.string().min(1).optional(),
+    limit: z.coerce.number().int().min(1).max(1000).default(5),
+    offset: z.coerce.number().int().min(0).default(0),
+    startDate: z.coerce.date().optional(),
+    endDate: z.coerce.date().optional(),
+  });
+
+  const parsed = await schema.parseAsync(req.query);
+
+  const result = await LogService.getLogsPaginated({
+    service: parsed.service,
+    level: parsed.level,
+    environment: parsed.environment,
+    userId: parsed.userId,
+    requestId: parsed.requestId,
+    sessionId: parsed.sessionId,
+    startDate: parsed.startDate,
+    endDate: parsed.endDate,
+    limit: parsed.limit,
+    offset: parsed.offset,
+  });
+
+  res.status(200).json(result);
+};
 
 export const getOneLogById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 

@@ -12,4 +12,4 @@ app.listen(PORT, () => {
 
 app.use(Express.json())
 
-app.use('/logs', logRouter)
+app.use('/api/logs', logRouter)

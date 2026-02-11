@@ -1,4 +1,4 @@
-import { ObjectId, type InsertOneResult, type InsertManyResult } from "mongodb"
+import { ObjectId, type InsertOneResult, type InsertManyResult,  type Filter } from "mongodb"
 import { getClient } from "./lib/db.ts"
 import type { createLogDTO } from "./validators/logs.ts"
 
@@ -57,4 +57,81 @@ export const createBatch = async (
   logs: createLogDTO[]
 ): Promise<InsertManyResult<LogDocument>> => {
   return collection.insertMany(logs);
+};
+
+export type GetLogsQuery = {
+  service?: string;
+  level?: string;
+  environment?: string;
+  userId?: string;
+  requestId?: string;
+  sessionId?: string;
+  startDate?: Date;
+  endDate?: Date;
+  limit: number;
+  offset: number;
+};
+
+export type GetLogsResult = {
+  data: LogDocument[];
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+  };
+};
+
+export const getLogsPaginated = async (
+  query: GetLogsQuery
+): Promise<GetLogsResult> => {
+  const {
+    service,
+    level,
+    environment,
+    userId,
+    requestId,
+    sessionId,
+    startDate,
+    endDate,
+    limit,
+    offset,
+  } = query;
+
+  const filter: Filter<LogDocument> = {};
+
+  if (service) filter.service = service;
+  if (level) filter.level = level;
+  if (environment) filter.environment = environment;
+  if (userId) filter.userId = userId;
+  if (requestId) filter.requestId = requestId;
+  if (sessionId) filter.sessionId = sessionId;
+
+  if (startDate || endDate) {
+    filter.timestamp = {
+      ...(startDate ? { $gte: startDate } : {}),
+      ...(endDate ? { $lte: endDate } : {}),
+    } as any;
+  }
+
+  const total = await collection.countDocuments(filter);
+
+  const data = await collection
+    .find(filter)
+    .sort({ timestamp: -1 })
+    .skip(offset)
+    .limit(limit)
+    .toArray();
+
+  return {
+    data,
+    pagination: {
+      total,
+      limit,
+      offset,
+      hasNext: offset + limit < total,
+      hasPrevious: offset > 0,
+    },
+  };
 };
